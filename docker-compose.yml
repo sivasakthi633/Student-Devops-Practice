@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: my_mysql_db
+    ports:
+      - "3307:3306" # host:container
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=app_db
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=secret
+    healthcheck:  # add readiness check
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: my_spring_app
+    ports:
+      - "8088:8080"
+    depends_on:
+      db:
+        condition: service_healthy # wait until DB is healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/app_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=secret
