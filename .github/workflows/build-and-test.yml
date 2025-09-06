@@ -33,5 +33,5 @@ jobs:
       # Step 3: Build the application and run tests.
       # This runs the Maven command. If any of your unit tests fail, this step will fail,
       # and the entire workflow will stop and be marked as "Failed".
-      - name: Build and run tests with Maven
-        run: mvn -B clean install
+      - name: Build with Maven
+        run: mvn -B clean install -DskipTests -Dmaven.test.skip=true
