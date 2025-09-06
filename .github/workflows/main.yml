@@ -1,0 +1,37 @@
+# A friendly name for your workflow, which will be displayed on GitHub.
+name: Build and Test Spring Boot App
+
+# This section defines when the workflow should automatically run.
+on:
+  push:
+    branches: [ "main" ] # Runs on every push to the main branch.
+  pull_request:
+    branches: [ "main" ] # Runs on every pull request that targets the main branch.
+
+# This section defines the actual work to be done.
+jobs:
+  # We are defining a single job named "build".
+  build:
+    # This specifies that the job will run on a fresh virtual machine hosted by GitHub, running the latest version of Ubuntu.
+    runs-on: ubuntu-latest
+
+    # A job is made up of a sequence of steps.
+    steps:
+      # Step 1: Check out your code.
+      # This uses a pre-built "Action" to download your repository's code into the virtual machine.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Java environment.
+      # This Action installs the specified version of Java (JDK) onto the machine.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Step 3: Build the application and run tests.
+      # This runs the Maven command. If any of your unit tests fail, this step will fail,
+      # and the entire workflow will stop and be marked as "Failed".
+      - name: Build and run tests with Maven
+        run: mvn -B clean install
