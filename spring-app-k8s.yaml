@@ -1,0 +1,46 @@
+# spring-app-k8s.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-spring-app-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-spring-app
+  template:
+    metadata:
+      labels:
+        app: my-spring-app
+    spec:
+      containers:
+      - name: spring-app-container
+        # IMPORTANT: Replace with your actual Docker Hub image path
+        image: sivasakthim/my-spring-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://db:3306/app_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+          - name: SPRING_DATASOURCE_USERNAME
+            value: admin
+          - name: SPRING_DATASOURCE_PASSWORD
+            value: secret
+  # -----------------------------------------------------------
+
+        # -----------------------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-spring-app-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: my-spring-app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

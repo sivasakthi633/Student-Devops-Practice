@@ -1,0 +1,66 @@
+# mysql-k8s.yaml
+
+# Persistent Volume Claim to store MySQL data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce # This is standard for a single database instance
+  resources:
+    requests:
+      storage: 1Gi # Request 1 Gigabyte of storage
+---
+# The Service that allows the Spring App to connect to MySQL
+# Note the name: "db", which matches your SPRING_DATASOURCE_URL
+apiVersion: v1
+kind: Service
+metadata:
+  name: db 
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP # Only exposes the service inside the cluster
+---
+# StatefulSet for running MySQL
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: "db"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+        - containerPort: 3306
+        env:
+          - name: MYSQL_DATABASE
+            value: "app_db"
+          - name: MYSQL_USER
+            value: "admin"
+          - name: MYSQL_PASSWORD
+            value: "secret"
+          - name: MYSQL_ROOT_PASSWORD
+            value: "rootpassword"
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
